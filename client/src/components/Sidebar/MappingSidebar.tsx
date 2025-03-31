@@ -8,6 +8,7 @@ const MappingSidebar = (props: Props) => {
     <aside className='style-sidebar'>
        <header className='sidebar-header'>
         <h2>MAPPING</h2>
+        <div>This feature is still in development. Check back later!</div>
       </header>
       </aside>
     

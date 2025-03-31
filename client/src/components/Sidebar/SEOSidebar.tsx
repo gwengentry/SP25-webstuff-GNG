@@ -9,6 +9,7 @@ const SEOSidebar = (props: Props) => {
        <header className='sidebar-header'>
         <h2>SEO</h2>
       </header>
+      <div>This feature is still in development. Check back later!</div>
       </aside>
     
   )

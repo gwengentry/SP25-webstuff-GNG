@@ -1,11 +1,12 @@
 import { findPrimaryAttributes } from "components/pages/app/Helpers";
-import React, { ChangeEvent, useState, useRef } from "react"; //Added useRef for ReactQuill handling
+import React, { ChangeEvent, useState, useRef } from "react"; //Added useRef for TinyMCE handling
 import { ActionType, useEditor } from "state/editor/EditorReducer";
 import { parseId } from "state/editor/Helpers";
 import { NodeAttribute, StorableHtmlNode } from "types/HtmlNodes";
 import ImageGallery from "./ImageGallery";
 import { Tooltip } from "react-tooltip"; // Handles hover-over tooltips
-import ReactQuill from 'react-quill-new';
+import { Editor as TinyMCEEditor } from 'tinymce/tinymce';
+import BundledEditor from 'BundledEditor.jsx'
 
 type Props = {};
 
@@ -39,7 +40,13 @@ const ElementSidebar = (props: Props) => {
       });
     }
   }
- // const quillRef = useRef<ReactQuill>(null); //Quill reference for later functions
+  
+  const editorRef = useRef<TinyMCEEditor | null>(null); //TinyMCE handling
+  const log = () => {
+    if (editorRef.current) {
+      console.log(editorRef.current.getContent());
+    }
+  }; 
 
   const buildInput = (
     source: { [key: string]: NodeAttribute },
@@ -70,45 +77,23 @@ const ElementSidebar = (props: Props) => {
       isImageElement = true;
     }
 
-    if (val.input && val.input.type === "richtext") {
+    if (val.input?.type === "richtext" ) { //Handles richtext editing using TinyMCE
       input = (
-        <ReactQuill 
-        className="quill-editor" //To force CSS styling due to visual glitches
-        onChange={(value) => {
-            dispatch({
-              type: ActionType.ATTRIBUTE_CHANGED,
-              target: target,
-              attribute: key,
-              newValue: value,
-            });
-          }}
-          theme = 'snow' //Quill editor theme
-          value={attributes[key]?.value || ""}
-          readOnly={val.readonly ? true : false}
-          data-tooltip-id={key} // Handles tooltip association
-
-          //Toolbar setup for Quill
-          modules={{
-              toolbar: [
-                ['bold', 'italic', 'underline', 'strike'],        // toggled buttons
-                ['blockquote', 'code-block'],
-                ['link', 'image', 'video'],
-              
-                [{ 'list': 'ordered'}, { 'list': 'bullet' }, { 'list': 'check' }],
-                [{ 'indent': '-1'}, { 'indent': '+1' }],          // outdent/indent
-                [{ 'direction': 'rtl' }],                         // text direction
-              
-                [{ 'size': ['small', false, 'large', 'huge'] }],  // custom dropdown
-              
-                [{ 'color': [] }, { 'background': [] }],          // dropdown with defaults from theme
-                [{ 'font': [] }],
-                [{ 'align': [] }],
-              
-                ['clean']                                         // remove formatting button
-              ],
-          }}
+        <BundledEditor 
+        tinymceScriptSrc='/tinymce/tinymce.min.js'
+        onInit={(_evt: any, editor: any) => editorRef.current = editor}
+        initialValue={val.value || "hi"} //Dynamic assignment based on Widget value
+        onEditorChange={(content: string) => {
+          dispatch({
+            type: ActionType.ATTRIBUTE_CHANGED,
+            target: target,
+            attribute: key,
+            newValue: content,
+          });
+        }
+      }
+      
         />
-        
       );
     }
 
